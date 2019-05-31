@@ -1,0 +1,56 @@
+/*----------------------------------------------------------------------------
+
+    Run Calyx-of-Held to MNTB Models - Current Clamp Mode
+    -----------------------------------------------------
+
+B. Graham, Dept. of Computing Science & Maths, University of Stirling
+(Contact: b.graham@cs.stir.ac.uk)
+(previously IANC, Division of Informatics, University of Edinburgh)
+
+CNS 2000 Version (19/11/02)
+----------------------------------------------------------------------------*/
+
+xopen("$(NEURONHOME)/lib/hoc/noload.hoc")
+
+
+//----------------------------------------------------------------------------
+//  general parameters
+//----------------------------------------------------------------------------
+
+dt=0.025
+tstop = 100
+runStopAt = tstop
+steps_per_ms = 1/dt
+celsius = 36
+v_init = -70
+
+
+//----------------------------------------------------------------------------
+//  create calyx and MNTB neuron
+//----------------------------------------------------------------------------
+
+postAP=1 // current-clamp mode
+xopen("prepost.hoc")
+xopen("prespikes.hoc")
+
+
+//----------------------------------------------------------------------------
+//  setup interface
+//----------------------------------------------------------------------------
+
+nosess=0
+
+nrnmainmenu()         // create main menu
+if(nosess==1) {
+  nrncontrolmenu()      // create control menu
+  xmenuspikes()
+} else {
+  xopen("cohepsp.ses")
+}
+
+
+//----------------------------------------------------------------------------
+//  initialise parameters
+//----------------------------------------------------------------------------
+
+prespikes()

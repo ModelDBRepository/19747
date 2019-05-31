@@ -1,0 +1,82 @@
+/*----------------------------------------------------------------------------
+
+    Calyx-of-Held to MNTB Model - Pre and Postsynaptic Structures
+    -------------------------------------------------------------
+
+
+B. Graham, Dept. of Computing Science & Maths, University of Stirling
+(Contact: b.graham@cs.stir.ac.uk)
+(previously IANC, Division of Informatics, University of Edinburgh)
+
+CNS 2000 Version (19/11/02)
+----------------------------------------------------------------------------*/
+
+
+create AXON, MNTB
+N=500       // number of release sites (same as RSIZE in coh2.mod)
+objectvar coh       // presynaptic calyx of Held
+objectvar c[1]      // postsynaptic receptor sites
+
+
+//----------------------------------------------------------------------------
+//  create AMPA receptors
+//----------------------------------------------------------------------------
+
+proc recampa() {
+  objectvar c[N]            // postsynaptic receptor sites
+  for i = 0, N-1 {
+    c[i] = new AMPA()
+    MNTB c[i].loc(0.5)          // assign postsynaptic compartment
+    setpointer c[i].C, coh.T[i]     // connect presynaptic transmitter
+    c[i].gmax = 500         // (pS) maximum conductance
+  }
+}
+
+
+proc setgmax() {
+  for i = 0, N-1 {c[i].gmax = $1}   // (pS) maximum conductance
+}
+
+
+//----------------------------------------------------------------------------
+//  create pre and postsynaptic compartments and insert passive properties
+//----------------------------------------------------------------------------
+
+forall {
+  diam=20
+  L=20
+  Ra=200
+  insert pas
+  g_pas=1/50000
+  e_pas=v_init
+}
+
+
+
+//----------------------------------------------------------------------------
+//  create presynaptic and insert postsynaptic mechansisms
+//----------------------------------------------------------------------------
+
+// calyx of Held
+coh = new COH()
+AXON coh.loc(0.5)
+
+// postsynaptic receptors
+recampa()
+
+objectvar vcl  // voltage-clamp object
+
+if (postAP == 1) {  // generate postsynaptic spikes
+  access MNTB
+  v_init=-66
+  MNTB {
+    insert BKDNaDR gnabar_BKDNaDR=0.025 gkbar_BKDNaDR=0.03
+    g_pas=1/500
+    e_pas=v_init
+  }
+} else {  // record postsynaptic currents
+  // voltage clamp postsynaptic cell
+  MNTB vcl = new VClamp(.5)
+  vcl.dur[0] = 11000
+  vcl.amp[0] = v_init
+}

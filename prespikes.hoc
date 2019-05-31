@@ -1,0 +1,76 @@
+/*----------------------------------------------------------------------------
+
+    Calyx-of-Held to MNTB Model - Presynaptic Spike Trains
+    ------------------------------------------------------
+
+B. Graham, Dept. of Computing Science & Maths, University of Stirling
+(Contact: b.graham@cs.stir.ac.uk)
+(previously IANC, Division of Informatics, University of Edinburgh)
+
+CNS 2000 Version (19/11/02)
+----------------------------------------------------------------------------*/
+
+SSIZE = 500 // maximum number of presynaptic spikes (see e.g. coh1.mod)
+
+stimdel = 10    // default stimulus delay (ms)
+stimdur = 100   // default stimulus duration (ms)
+stimfre = 100   // default stimulus frequency (Hz)
+
+testdel = 10    // default test delay (ms)
+testdur = 1000  // default test duration (ms)
+testfre = 20    // default test frequency (Hz)
+
+
+//----------------------------------------------------------------------------
+//  create presynaptic stimulus and test spike trains
+//----------------------------------------------------------------------------
+
+proc prespikes() {local j, sisi, sn, tisi, tn
+
+  sisi = 1000/stimfre    // stimulus interspike interval (ms)
+  sn = int(stimdur/sisi) // number of stimulus spikes
+
+  tn = 0
+  if (testfre > 0) {
+    tisi = 1000/testfre  // test interspike interval (ms)
+    tn = int(testdur/tisi)   // number of test spikes
+  }
+
+  if (sn+tn+2 > SSIZE) {  // stimulus spikes
+    printf("Too many spikes requested!\n")
+  }  else {
+    for j = 0, sn {
+      coh.spike[j]=stimdel+j*sisi    // presynaptic stimulus spike times
+    }
+    coh.spike[sn+1] = 1e20  // end of spikes
+  }
+
+  if (tn > 0 && sn+tn+2 <= SSIZE) {  // test spikes
+    for j = 0, tn {
+      coh.spike[j+sn+1]=coh.spike[sn]+testdel+j*tisi // test spike times
+    }
+    coh.spike[tn+sn+2] = 1e20   // end of spikes
+  }
+
+}
+
+
+//----------------------------------------------------------------------------
+//  menu for specifying spike trains
+//----------------------------------------------------------------------------
+
+proc xmenuspikes() {
+
+  xpanel("Presynaptic Spikes")
+  xlabel("Stimulus")
+  xvalue("Delay (ms)", "stimdel")
+  xvalue("Duration (ms)", "stimdur")
+  xvalue("Frequency (Hz)", "stimfre")
+  xlabel("Test")
+  xvalue("Delay (ms)", "testdel")
+  xvalue("Duration (ms)", "testdur")
+  xvalue("Frequency (Hz)", "testfre")
+  xbutton("Accept", "prespikes()")
+  xpanel()
+
+}
